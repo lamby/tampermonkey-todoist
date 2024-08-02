@@ -4,7 +4,7 @@
 // @version      2024-08-02
 // @description  Makes Todoist eg. nicer to print
 // @author       Chris Lamb
-// @match        https://app.todoist.com/app/project/*
+// @match        https://app.todoist.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=todoist.com
 // @grant        none
 // @require      http://code.jquery.com/jquery-3.4.1.min.js
@@ -13,23 +13,22 @@
 (function() {
     'use strict';
     var $ = jQuery;
-    var timer = null;
+    window.$ = jQuery;
 
-    timer = setInterval(function () {
-        if ($('#share-options-button').length === 0) {
+    setInterval(function () {
+        var elem = $('#view-options-menu-description');
+
+        if (elem.length === 0 || $('#print-button').length === 1) {
             return;
         }
 
-        clearInterval(timer);
-        window.$ = jQuery;
-
-        var button = $('<button type="button">Print</button>');
+        var button = $('<button id="print-button" type="button">Print</button>');
 
         button.on('click', function () {
             print();
         });
 
-        button.insertBefore('#share-options-button');
+        button.insertBefore(elem);
     }, 1000);
 
     var print = function () {
@@ -44,7 +43,7 @@
         html += 'a { color: inherit; text-decoration: none; }';
         html += 'img.emoji { height: 14px; }';
         html += 'ul { list-style: none; padding-left: 14px; margin-top: -6px; }';
-        html += 'li:before { content: "◯"; }';
+        html += 'li:before { content: "◯"; position: relative; left: -7px; }';
         html += 'li { padding-bottom: 6px; }';
         html += 'h1 { padding-bottom: 16px; }';
         html += 'h2 { margin-top: -4px; }';
@@ -54,7 +53,13 @@
         html += "<h1>" + title + "</h1>"
 
         $(items).each(function () {
-            html += "<h2>" + this['title'] + "</h2>";
+            if (this['items'].length === 0) {
+                return;
+            }
+            if (this['title'] !== "") {
+                html += "<h2>" + this['title'] + "</h2>";
+            }
+
             html += "<ul>";
             $(this['items']).each(function() {
                 html += "<li>" + this + "</li>";
@@ -69,18 +74,23 @@
 
     var getItems = function () {
         var result = [];
-        $('.section_list .section_head__title_box').each(function() {
+        $('main section').each(function() {
+            var elem = $(this);
             var section = {};
+            section['items'] = [];
+
+            section['title'] = elem.find(".section_head__title span").html();
+            if (typeof section['title'] === "undefined") {
+                section['title'] = elem.find("h2 span, h2 a").html();
+            }
+            if (section['title'] === "(No Section)") {
+                section['title'] = "";
+            }
 
             var items = [];
-            $(this).parents("li").find(".task_content").each(function () {
-                var val = $(this);
-
-                items.push($(this).html());
+            elem.find(".task_content").each(function () {
+                section['items'].push($(this).html());
             });
-
-            section['items'] = items;
-            section['title'] = $(this).find('span').html();
 
             result.push(section);
         });
