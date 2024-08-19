@@ -74,7 +74,8 @@
 
     var getItems = function () {
         var result = [];
-        $('main section').each(function() {
+
+        $('main .list_holder').each(function() {
             var elem = $(this);
             var section = {};
             section['items'] = [];
@@ -83,7 +84,7 @@
             if (typeof section['title'] === "undefined") {
                 section['title'] = elem.find("h2 span, h2 a").html();
             }
-            if (section['title'] === "(No Section)") {
+            if (section['title'] === "(No Section)" || typeof section['title'] === "undefined") {
                 section['title'] = "";
             }
 
