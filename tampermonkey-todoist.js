@@ -44,7 +44,7 @@
         html += 'img.emoji { height: 14px; }';
         html += 'ul { list-style: none; padding-left: 14px; margin-top: -6px; }';
         html += 'li:before { content: "◯"; position: relative; left: -7px; }';
-        html += 'li { padding-bottom: 6px; }';
+        html += 'li { padding-bottom: 8px; }';
         html += 'h1 { padding-bottom: 16px; }';
         html += 'h2 { margin-top: -4px; }';
         html += '</style>';
@@ -62,7 +62,18 @@
 
             html += "<ul>";
             $(this['items']).each(function() {
-                html += "<li>" + this + "</li>";
+                html += "<li>";
+                html += this['title'];
+                html += "<br>";
+                html += this['date'] + '&nbsp;&nbsp;•&nbsp;&nbsp;';
+                for (var i = 0; i < this['labels'].length; ++i) {
+                    html += '<i>' + this['labels'][i] + '</i>';
+                    if (i < this['labels'].length - 1) {
+                        html += ", ";
+                    }
+                }
+                html += '&nbsp;&nbsp;•&nbsp;&nbsp;<b>' + this['project'] + '</b>';
+                html += "</li>";
             });
 
             html += "</ul>";
@@ -74,8 +85,7 @@
 
     var getItems = function () {
         var result = [];
-
-        $('main .list_holder').each(function() {
+        $('main section').each(function() {
             var elem = $(this);
             var section = {};
             section['items'] = [];
@@ -84,13 +94,25 @@
             if (typeof section['title'] === "undefined") {
                 section['title'] = elem.find("h2 span, h2 a").html();
             }
-            if (section['title'] === "(No Section)" || typeof section['title'] === "undefined") {
+            if (section['title'] === "(No Section)") {
                 section['title'] = "";
             }
 
             var items = [];
-            elem.find(".task_content").each(function () {
-                section['items'].push($(this).html());
+            elem.find(".task_list_item__content").each(function () {
+                var item = {};
+                items['labels'] = [];
+
+                item['title'] = $(this).find(".task_content").html();
+                item['date'] = $(this).find(".date span").text();
+                item['project'] = $(this).find("span:last").text();
+
+                item['labels'] = [];
+                elem.find(".simple_content").each(function () {
+                    item['labels'].push($(this).text());
+                });
+
+                section['items'].push(item);
             });
 
             result.push(section);
