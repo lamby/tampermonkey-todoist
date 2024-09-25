@@ -42,11 +42,12 @@
         html += 'html { font-family: -apple-system, system-ui, "Segoe UI", Roboto, Noto, Oxygen-Sans, Ubuntu, Cantrell, "Helvetica Neue", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" }';
         html += 'a { color: inherit; text-decoration: none; }';
         html += 'img.emoji { height: 14px; }';
-        html += 'ul { list-style: none; padding-left: 14px; margin-top: -6px; }';
+        html += 'ul { list-style: none; padding-left: 14px; margin-top: -6px; margin-bottom: 18px; }';
         html += 'li:before { content: "◯"; position: relative; left: -7px; }';
         html += 'li { padding-bottom: 8px; }';
         html += 'h1 { padding-bottom: 16px; }';
         html += 'h2 { margin-top: -4px; }';
+        html += 'small { color: #808080; }';
         html += '</style>';
         html += '</head>';
         html += '<body>';
@@ -65,14 +66,28 @@
                 html += "<li>";
                 html += this['title'];
                 html += "<br>";
-                html += this['date'] + '&nbsp;&nbsp;•&nbsp;&nbsp;';
-                for (var i = 0; i < this['labels'].length; ++i) {
-                    html += '<i>' + this['labels'][i] + '</i>';
-                    if (i < this['labels'].length - 1) {
-                        html += ", ";
+
+                html += 'Priority ' + this['priority'];
+
+                if (this['project'] !== "") {
+                    html += '&nbsp;&nbsp;•&nbsp;&nbsp;<b>' + this['project'] + '</b>';
+                }
+
+                if (this['labels'].length > 0) {
+                    html += '&nbsp;&nbsp;•&nbsp;&nbsp;';
+                    for (var i = 0; i < this['labels'].length; ++i) {
+                        html += '<i>' + this['labels'][i] + '</i>';
+                        if (i < this['labels'].length - 1) {
+                            html += ",&nbsp;&nbsp;";
+                        }
                     }
                 }
-                html += '&nbsp;&nbsp;•&nbsp;&nbsp;<b>' + this['project'] + '</b>';
+
+                if (this['date'] !== "Today" && this['date'] !== "") {
+                    html += '&nbsp;&nbsp;&nbsp;&nbsp;<small>Due ' + this['date'] + '</small>';
+                }
+
+
                 html += "</li>";
             });
 
@@ -99,16 +114,30 @@
             }
 
             var items = [];
-            elem.find(".task_list_item__content").each(function () {
+            elem.find(".task_list_item__body").each(function () {
                 var item = {};
                 items['labels'] = [];
 
                 item['title'] = $(this).find(".task_content").html();
                 item['date'] = $(this).find(".date span").text();
-                item['project'] = $(this).find("span:last").text();
+                item['project'] = $(this).find("a div > div > span:last").text();
+
+                var lookup = {
+                    "priority_1": 4,
+                    "priority_2": 3,
+                    "priority_3": 2,
+                    "priority_4": 1
+                };
+                var checkbox = $(this).find(".task_checkbox");
+                for (const [key, value] of Object.entries(lookup)) {
+                    if (checkbox.hasClass(key)) {
+                        item["priority"] = value;
+                        break;
+                    }
+                }
 
                 item['labels'] = [];
-                elem.find(".simple_content").each(function () {
+                $(this).find(".simple_content").each(function () {
                     item['labels'].push($(this).text());
                 });
 
